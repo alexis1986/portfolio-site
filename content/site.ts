@@ -3,7 +3,7 @@ import { Localized } from './types';
 export const SITE_URL = 'https://alexdevvv.com';
 export const EMAIL = 'alexis.castellano@gmail.com';
 export const DEMO_URL = 'https://alarma-system-poc.alexdevvv.com';
-export const LINKEDIN_URL = 'https://linkedin.com/in/alexis1986';
+export const LINKEDIN_URL = 'https://www.linkedin.com/in/alexis-sebastian-castellano-gutierrez/';
 export const GITHUB_URL = 'https://github.com/alexis1986';
 export const BOOKING_URL: string = 'https://calendar.app.google/8h9ZuaFF76sovEiz8';
 
