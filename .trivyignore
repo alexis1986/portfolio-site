@@ -1,0 +1,5 @@
+# Time-boxed exceptions for Trivy (dependency, IaC and image scans).
+# Every entry must be preceded by a comment with the reason and an expiry date:
+#   # reason — expires YYYY-MM-DD
+#   CVE-0000-00000 exp:YYYY-MM-DD
+# An expired entry is a finding to revisit, not a permanent allowance.

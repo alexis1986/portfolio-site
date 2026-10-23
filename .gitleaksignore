@@ -1,0 +1,5 @@
+# Time-boxed exceptions for Gitleaks.
+# Every entry must be preceded by a comment with the reason and an expiry date:
+#   # reason — expires YYYY-MM-DD
+#   <finding fingerprint>
+# An expired entry is a finding to revisit, not a permanent allowance.

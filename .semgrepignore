@@ -1,0 +1,5 @@
+# Time-boxed exceptions for Semgrep.
+# Every entry must be preceded by a comment with the reason and an expiry date:
+#   # reason — expires YYYY-MM-DD
+#   <path or glob>
+# An expired entry is a finding to revisit, not a permanent allowance.

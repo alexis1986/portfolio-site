@@ -1,0 +1,41 @@
+name: Security DAST
+
+on:
+  workflow_run:
+    workflows: [Publish]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  wait-for-deploy:
+    name: Wait for deploy
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # After a successful publish the image updater needs a few minutes to
+      # roll the new image out, so the scan waits before probing the live site.
+      # Scheduled and manual runs scan what is already live.
+      - name: Wait for the new image to roll out
+        if: github.event_name == 'workflow_run'
+        run: sleep 300
+
+  dast:
+    name: DAST
+    needs: wait-for-deploy
+    permissions:
+      contents: read
+    uses: alexis1986/security-workflows/.github/workflows/dast.yml@main
+    with:
+      mode: report
+      target-url: https://alexdevvv.com
