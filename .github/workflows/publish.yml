@@ -91,6 +91,10 @@ jobs:
   image-scan:
     name: Image scan and push
     needs: [ci, secrets, sca, sast, iac]
+    # Report-mode baseline window: scanner tool errors must not stop deploys, so
+    # the job runs even if a scan layer failed (only CI must pass). Revert to
+    # plain `needs` gating when the layers flip to enforce (Phase 4).
+    if: ${{ !cancelled() && needs.ci.result == 'success' }}
     permissions:
       contents: read
       security-events: write
@@ -109,7 +113,8 @@ jobs:
   sign-sbom:
     name: SBOM and signature
     needs: image-scan
-    if: github.event_name == 'push'
+    # Same baseline-window rule as image-scan: revert to plain `needs` gating in Phase 4.
+    if: ${{ !cancelled() && github.event_name == 'push' && needs.image-scan.result == 'success' }}
     permissions:
       contents: read
       packages: write

@@ -3,3 +3,11 @@
 #   # reason — expires YYYY-MM-DD
 #   <path or glob>
 # An expired entry is a finding to revisit, not a permanent allowance.
+
+# Defaults: vendored/generated output and gitignored files are not scanned; tests stay in scope.
+:include .gitignore
+node_modules/
+dist/
+build/
+.next/
+*.min.js
