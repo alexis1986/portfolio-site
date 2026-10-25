@@ -17,25 +17,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  wait-for-deploy:
-    name: Wait for deploy
-    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      # After a successful publish the image updater needs a few minutes to
-      # roll the new image out, so the scan waits before probing the live site.
-      # Scheduled and manual runs scan what is already live.
-      - name: Wait for the new image to roll out
-        if: github.event_name == 'workflow_run'
-        run: sleep 300
-
   dast:
     name: DAST
-    needs: wait-for-deploy
+    # After a successful publish from a push, wait until the site serves that commit;
+    # scheduled and manual runs scan what is already live.
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     permissions:
       contents: read
-    uses: alexis1986/security-workflows/.github/workflows/dast.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/dast.yml@v1.0.0
     with:
       mode: report
       target-url: https://alexdevvv.com
+      wait-url: https://alexdevvv.com/version.txt
+      wait-for: ${{ github.event.workflow_run.head_sha || '' }}
+      wait-timeout-minutes: 15

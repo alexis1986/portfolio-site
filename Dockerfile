@@ -8,6 +8,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Commit desplegado, servido en /version.txt: el DAST espera a que el sitio sirva este SHA.
+ARG GIT_SHA=dev
+RUN echo "$GIT_SHA" > public/version.txt
 RUN corepack enable && pnpm build
 
 FROM node:22-alpine AS runner

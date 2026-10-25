@@ -18,3 +18,6 @@ docs/superpowers/
 .superpowers/
 *.stackdump
 .idea/
+
+# Generado en el build de la imagen (commit desplegado)
+public/version.txt
