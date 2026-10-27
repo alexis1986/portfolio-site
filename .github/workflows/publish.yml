@@ -47,9 +47,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: alexis1986/security-workflows/.github/workflows/secrets.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/secrets.yml@v1.0.0
     with:
-      mode: report
+      mode: enforce
       upload-sarif: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
       artifact-name: secrets-report
 
@@ -58,9 +58,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: alexis1986/security-workflows/.github/workflows/sca.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/sca.yml@v1.0.0
     with:
-      mode: report
+      mode: enforce
       upload-sarif: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
       artifact-name: sca-report
 
@@ -69,9 +69,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: alexis1986/security-workflows/.github/workflows/sast.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/sast.yml@v1.0.0
     with:
-      mode: report
+      mode: enforce
       upload-sarif: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
       artifact-name: sast-report
 
@@ -80,9 +80,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: alexis1986/security-workflows/.github/workflows/iac.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/iac.yml@v1.0.0
     with:
-      mode: report
+      mode: enforce
       upload-sarif: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
       artifact-name: iac-report
 
@@ -91,17 +91,13 @@ jobs:
   image-scan:
     name: Image scan and push
     needs: [ci, secrets, sca, sast, iac]
-    # Report-mode baseline window: scanner tool errors must not stop deploys, so
-    # the job runs even if a scan layer failed (only CI must pass). Revert to
-    # plain `needs` gating when the layers flip to enforce (Phase 4).
-    if: ${{ !cancelled() && needs.ci.result == 'success' }}
     permissions:
       contents: read
       security-events: write
       packages: write
-    uses: alexis1986/security-workflows/.github/workflows/image-scan.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/image-scan.yml@v1.0.0
     with:
-      mode: report
+      mode: enforce
       upload-sarif: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
       image-name: portfolio-site
       artifact-name: image-report
@@ -109,17 +105,21 @@ jobs:
       push-tags: |
         ghcr.io/alexis1986/portfolio-site:latest
         ghcr.io/alexis1986/portfolio-site:sha-${{ github.sha }}
+    secrets:
+      # GIT_SHA queda en /version.txt: el DAST espera a que el sitio sirva este commit.
+      # build-args es un secret del reutilizable, asi que el SHA aparece enmascarado en sus logs.
+      build-args: |
+        GIT_SHA=${{ github.sha }}
 
   sign-sbom:
     name: SBOM and signature
     needs: image-scan
-    # Same baseline-window rule as image-scan: revert to plain `needs` gating in Phase 4.
-    if: ${{ !cancelled() && github.event_name == 'push' && needs.image-scan.result == 'success' }}
+    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
       id-token: write
-    uses: alexis1986/security-workflows/.github/workflows/sign-sbom.yml@main
+    uses: alexis1986/security-workflows/.github/workflows/sign-sbom.yml@v1.0.0
     with:
       image-ref: ghcr.io/alexis1986/portfolio-site@${{ needs.image-scan.outputs.digest }}
       signing: keyless
